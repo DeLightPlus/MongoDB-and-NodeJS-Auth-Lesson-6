@@ -30,26 +30,38 @@ exports.registerUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   const { email, password } = req.body;
 
-  try {
+  try 
+  {
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
+    if (!isMatch) 
+    {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     // Generate JWT
     const payload = {
-      userId: user._id,
+      userId: user.id,
       role: user.role
     };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
+    // Send the JWT as a cookie (instead of just in the response body)
+    res.cookie('jwt_auth', token, {
+      httpOnly: true, // Ensure the cookie cannot be accessed via JavaScript
+      secure: process.env.NODE_ENV === 'production', // Set secure flag for production
+      maxAge: 3600000, // Cookie expires after 1 hour
+    });
+
     res.json({ token });
-  } catch (err) {
+
+  } 
+  catch (err) 
+  {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
   }

@@ -14,7 +14,7 @@ const Recipe = require('../models/Recipe');
 const router = express.Router();
 
 // Define API routes and link them to the controller functions
-router.post('/', authenticateJWT, authorizeRole(['admin']), createRecipe);
+router.post('/', authenticateJWT, authorizeRole(['admin', 'user']), createRecipe);
 router.get('/', authenticateJWT, getAllRecipes);
 router.get('/:id',  authenticateJWT, getRecipeById);
 router.put('/:id', authenticateJWT, authorizeRole(['admin', 'user']), updateRecipe);

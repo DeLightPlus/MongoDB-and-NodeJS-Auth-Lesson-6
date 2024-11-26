@@ -4,15 +4,21 @@ const Recipe = require('../models/Recipe');
 exports.createRecipe = async (req, res) => {
   const { name, ingredients, instructions, cookingTime } = req.body;
   try {
+    console.log('createdBy:' , req.user.userId);
     // Check if the recipe already exists (optional)
     const existingRecipe = await Recipe.findOne({ name });
-    if (existingRecipe) {
+    if (existingRecipe) 
+    {
       return res.status(400).json({ message: 'Recipe already exists' });
-    }
-
+    }    
+    
     const newRecipe = new Recipe({
-      ...req.body,
-      createdBy: req.user.id,  // Ensure req.user.id is available via authentication middleware
+      // ...req.body,
+      name,
+      ingredients,
+      instructions,
+      cookingTime,
+      createdBy: req.user.userId,  // Ensure req.user.id is available via authentication middleware
     });
     
     await newRecipe.save();
@@ -49,13 +55,26 @@ exports.getAllRecipes = async (req, res) => {
 // Get recipe by ID
 exports.getRecipeById = async (req, res) => {
   const { recipeId } = req.params;
-  try {
+  console.log('Fetching recipe with ID:', recipeId);  // Log recipeId
+
+  try 
+  {
+     // Ensure the recipeId is a valid ObjectId
+     if (!mongoose.Types.ObjectId.isValid(recipeId)) 
+    {
+      return res.status(400).json({ message: 'Invalid recipe ID format' });
+    }
+
     const recipe = await Recipe.findById(recipeId).populate('createdBy', 'username email');
-    if (!recipe) {
+    if (!recipe) 
+    {
       return res.status(404).json({ message: 'Recipe not found' });
     }
+
     res.status(200).json({ recipe });
-  } catch (err) {
+  } 
+  catch (err) 
+  {
     res.status(500).json({ message: 'Error fetching recipe', error: err.message });
   }
 };

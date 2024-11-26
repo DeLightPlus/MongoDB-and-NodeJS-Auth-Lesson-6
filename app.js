@@ -1,6 +1,8 @@
 const express = require('express');
-const connectDB = require('./config/db');
 const dotenv = require('dotenv');
+const cookieParser = require('cookie-parser');
+
+const connectDB = require('./config/db');
 const authRoutes = require('./routes/userRoutes');
 const recipeRoutes = require('./routes/recipeRoutes');
 
@@ -9,6 +11,7 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 app.use(express.json()); // To parse incoming JSON bodies
+app.use(cookieParser()); // To parse cookies
 
 // Connect to MongoDB
 connectDB();
@@ -24,5 +27,5 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 8027;
+const PORT = process.env.PORT || 5027;
 app.listen(PORT, () => { console.log(`Server is running on port ${PORT}`); });

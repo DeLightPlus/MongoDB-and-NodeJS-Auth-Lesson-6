@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Recipe = require('../models/Recipe');
 
 // Create a new recipe
@@ -59,13 +60,16 @@ exports.getRecipeById = async (req, res) => {
 
   try 
   {
-     // Ensure the recipeId is a valid ObjectId
-     if (!mongoose.Types.ObjectId.isValid(recipeId)) 
+    // Ensure the recipeId is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(recipeId)) 
     {
       return res.status(400).json({ message: 'Invalid recipe ID format' });
     }
 
+    // Use findById for easier retrieval of a single document
     const recipe = await Recipe.findById(recipeId).populate('createdBy', 'username email');
+    // const recipe = await Recipe.find({"_id": recipeId})
+    
     if (!recipe) 
     {
       return res.status(404).json({ message: 'Recipe not found' });
@@ -76,6 +80,32 @@ exports.getRecipeById = async (req, res) => {
   catch (err) 
   {
     res.status(500).json({ message: 'Error fetching recipe', error: err.message });
+  }
+};
+
+// Get recipes by User ID
+exports.getRecipesByUserId = async (req, res) => {
+  const { userId } = req.params;
+  console.log('Fetching recipes created by user:', userId);  // Log userId
+
+  try {
+    // Ensure the userId is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+
+    const recipes = await Recipe.find({ createdBy: userId }).populate('createdBy', 'username email');
+
+    if (recipes.length === 0) 
+    {
+      return res.status(404).json({ message: 'No recipes found for this user' });
+    }
+
+    res.status(200).json({ recipes });
+  } 
+  catch (err) 
+  {
+    res.status(500).json({ message: 'Error fetching recipes', error: err.message });
   }
 };
 
@@ -114,17 +144,21 @@ exports.deleteRecipe = async (req, res) => {
     }
 
     // Check if the user is authorized (either the creator or admin)
-    if (recipe.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (recipe.createdBy.toString() !== req.user.id && req.user.role !== 'admin') 
+    {
       return res.status(403).json({ message: 'Forbidden: You do not have permission to delete this recipe' });
     }
 
     const deletedRecipe = await Recipe.findByIdAndDelete(recipeId);
-    if (!deletedRecipe) {
+    if (!deletedRecipe) 
+    {
       return res.status(404).json({ message: 'Recipe not found' });
     }
 
     res.json({ message: 'Recipe deleted successfully' });
-  } catch (err) {
+  } 
+  catch (err) 
+  {
     res.status(500).json({ message: 'Error deleting recipe', error: err.message });
   }
 };
